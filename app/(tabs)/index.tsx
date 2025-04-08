@@ -75,6 +75,54 @@ const sampleArticles: SearchResult[] = [
     type: "article", 
     content: "Les personnes physiques, les associations, les sociétés n'ayant pas la forme commerciale, domiciliées ou établies en France, sont tenues de déclarer, en même temps que leur déclaration de revenus ou de résultats, les références des comptes ouverts, utilisés ou clos à l'étranger.", 
     highlight: "" 
+  },
+  { 
+    id: 8, 
+    code: "ART. 256 A", 
+    title: "Assujettis à la TVA", 
+    type: "article", 
+    content: "Sont assujetties à la taxe sur la valeur ajoutée les personnes qui effectuent de manière indépendante une des activités économiques mentionnées au cinquième alinéa, quels que soient le statut juridique de ces personnes, leur situation au regard des autres impôts et la forme ou la nature de leur intervention.", 
+    highlight: "" 
+  },
+  { 
+    id: 9, 
+    code: "ART. 257", 
+    title: "Opérations immobilières soumises à la TVA", 
+    type: "article", 
+    content: "I. Les opérations concourant à la production ou à la livraison d'immeubles sont soumises à la taxe sur la valeur ajoutée dans les conditions qui suivent. II. Sont considérés comme terrains à bâtir les terrains sur lesquels des constructions peuvent être autorisées en application d'un plan local d'urbanisme.", 
+    highlight: "" 
+  },
+  { 
+    id: 10, 
+    code: "ART. 258", 
+    title: "Lieu des livraisons de biens pour la TVA", 
+    type: "article", 
+    content: "I. Le lieu de livraison de biens meubles corporels est réputé se situer en France lorsque le bien se trouve en France au moment de la livraison. II. Le lieu de livraison des biens expédiés ou transportés par le fournisseur, par l'acquéreur ou par un tiers est réputé se situer en France lorsque le bien se trouve en France au moment du départ de l'expédition ou du transport.", 
+    highlight: "" 
+  },
+  { 
+    id: 11, 
+    code: "ART. 271", 
+    title: "Droit à déduction de la TVA", 
+    type: "article", 
+    content: "I. 1. La taxe sur la valeur ajoutée qui a grevé les éléments du prix d'une opération imposable est déductible de la taxe sur la valeur ajoutée applicable à cette opération. 2. Le droit à déduction prend naissance lorsque la taxe déductible devient exigible chez le redevable.", 
+    highlight: "" 
+  },
+  { 
+    id: 12, 
+    code: "ART. 287", 
+    title: "Déclaration de TVA", 
+    type: "article", 
+    content: "1. Tout redevable de la taxe sur la valeur ajoutée est tenu de remettre au service des impôts dont il dépend une déclaration conforme au modèle prescrit par l'administration. 2. Les redevables soumis au régime réel normal d'imposition déposent mensuellement la déclaration visée au 1 indiquant, d'une part, le montant total des opérations réalisées, d'autre part, le détail des opérations taxables.", 
+    highlight: "" 
+  },
+  { 
+    id: 13, 
+    code: "ART. 293 B", 
+    title: "Franchise en base de TVA", 
+    type: "article", 
+    content: "I. Les assujettis qui réalisent un chiffre d'affaires inférieur à certains seuils bénéficient d'une franchise qui les dispense du paiement de la taxe sur la valeur ajoutée. II. Le chiffre d'affaires limite de la franchise est fixé à 85 800 € pour les livraisons de biens et 34 400 € pour les prestations de services.", 
+    highlight: "" 
   }
 ];
 
@@ -431,7 +479,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   recentSearchesContainer: {
-    marginBottom: 24,
+    marginBottom: 50,
     paddingHorizontal: 24,
   },
   recentSearchesTitle: {
@@ -464,6 +512,7 @@ const styles = StyleSheet.create({
   resultsContainer: {
     flex: 1,
     paddingHorizontal: 24,
+    marginBottom: 50,
   },
   resultsTitle: {
     fontSize: 18,
