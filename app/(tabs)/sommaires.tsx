@@ -15,7 +15,7 @@ export default function SommairesScreen() {
       <ThemedView style={styles.container}>
         <View style={styles.welcomeContainer}>
           <Image 
-            source={require('@/assets/images/icon.png')} 
+            source={require('@/assets/images/logo.png')} 
             style={styles.logo}
             resizeMode="contain"
           />

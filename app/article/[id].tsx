@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, View, TouchableOpacity, ActivityIndicator, Share } from 'react-native';
+import { StyleSheet, ScrollView, View, TouchableOpacity, ActivityIndicator, Share, Alert, Text } from 'react-native';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -10,10 +10,15 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useArticleDetails, useBookmarks } from '@/hooks/useSupabase';
 import { supabase } from '@/lib/supabase';
 import { ArticleVersion } from '@/types';
+import { ArticleBreadcrumb } from '@/components/ArticleBreadcrumb';
+import { ArticleSkeleton } from '@/components/ArticleSkeleton';
+import { NavigationTabs } from '@/components/ui/NavigationTabs';
+import { highlightText } from '@/utils/highlight';
 
 export default function ArticleDetailScreen() {
-  const { id } = useLocalSearchParams();
+  const { id, search } = useLocalSearchParams();
   const articleId = typeof id === 'string' ? parseInt(id, 10) : null;
+  const searchTerm = typeof search === 'string' ? search : '';
   const colorScheme = useColorScheme();
   const { loading, article, versions, refetch } = useArticleDetails(articleId);
   const [userId, setUserId] = useState<string | null>(null);
@@ -85,11 +90,19 @@ export default function ArticleDetailScreen() {
     </TouchableOpacity>
   );
 
+  // Popup générique pour fonctionnalités non disponibles
+  const showComingSoon = () => {
+    Alert.alert(
+      'Fonctionnalité à venir',
+      `Cette fonctionnalité n'est pas encore disponible dans cette version de l'application.`,
+      [{ text: 'OK' }]
+    );
+  };
+
   if (loading) {
     return (
       <ThemedView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors[colorScheme ?? 'light'].tint} />
-        <ThemedText>Chargement de l'article...</ThemedText>
+        <ArticleSkeleton />
       </ThemedView>
     );
   }
@@ -118,7 +131,8 @@ export default function ArticleDetailScreen() {
   const displayContent = selectedVersion ? selectedVersion.version_content : article.content;
 
   return (
-    <>
+    <ThemedView style={styles.container}>
+      {/* Affichage du chemin de fer si article présent et breadcrumb dispo */}
       <Stack.Screen
         options={{
           title: article.code,
@@ -126,93 +140,80 @@ export default function ArticleDetailScreen() {
           headerBackTitle: 'Retour',
         }}
       />
-      <ThemedView style={styles.container}>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
-          <View style={styles.header}>
-            <ThemedText type="title">{article.code}</ThemedText>
-            <ThemedText type="subtitle">{article.title}</ThemedText>
-            <ThemedText style={styles.versionDate}>
-              Dernière mise à jour: {new Date(article.version_date).toLocaleDateString()}
-            </ThemedText>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
+        <View style={styles.header}>
+          <View>
+          
+            <View style={{ flex: 1, marginRight: 10 }}>
+              <ThemedText type="title">{article.title}</ThemedText>
+              {/* Chemin de fer sous le header, à la place de la date */}
+              {article && 'breadcrumb' in article && article.breadcrumb && (
+                <ArticleBreadcrumb breadcrumb={article.breadcrumb} style={{ marginTop: 4, marginBottom: 8, color: Colors[colorScheme ?? 'light'].text, fontSize: 12 }} />
+              )}
+              <ThemedText style={textStyles.versionDate}>Dernière mise à jour: {new Date(article.version_date).toLocaleDateString()}</ThemedText>
+            </View>
+        
           </View>
           
-          <ThemedView style={styles.contentBox}>
-            <ThemedText style={styles.articleContent}>
-              {displayContent || 'Aucun contenu disponible pour cet article.'}
-            </ThemedText>
-          </ThemedView>
-          
-          {versions.length > 0 && (
-            <View style={styles.versionsContainer}>
-              <TouchableOpacity
-                style={styles.versionsButton}
-                onPress={() => setShowVersions(!showVersions)}>
-                <ThemedText type="defaultSemiBold">
-                  {selectedVersion ? 'Version du ' + new Date(selectedVersion.effective_date).toLocaleDateString() : 'Historique des versions'}
-                </ThemedText>
-                <IconSymbol
-                  name={showVersions ? 'chevron.up' : 'chevron.down'}
-                  size={18}
-                  color={Colors[colorScheme ?? 'light'].icon}
-                />
-              </TouchableOpacity>
-              
-              {showVersions && (
-                <View style={styles.versionsList}>
-                  <TouchableOpacity
-                    style={[styles.versionItem, !selectedVersion && styles.versionItemActive]}
-                    onPress={() => setSelectedVersion(null)}>
-                    <ThemedText
-                      type="defaultSemiBold"
-                      style={!selectedVersion ? styles.versionItemActiveText : {}}>
-                      Version actuelle
-                    </ThemedText>
-                  </TouchableOpacity>
-                  {versions.map(renderVersionItem)}
-                </View>
-              )}
-            </View>
-          )}
-        </ScrollView>
-        
-        <View style={styles.actionBar}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleToggleBookmark}>
-            <IconSymbol
-              name={isBookmarked ? 'bookmark.fill' : 'bookmark'}
-              size={24}
-              color={isBookmarked ? Colors[colorScheme ?? 'light'].tint : Colors[colorScheme ?? 'light'].icon}
-            />
-            <ThemedText style={styles.actionButtonText}>
-              {isBookmarked ? 'Épinglé' : 'Épingler'}
-            </ThemedText>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleShare}>
-            <IconSymbol
-              name="square.and.arrow.up"
-              size={24}
-              color={Colors[colorScheme ?? 'light'].icon}
-            />
-            <ThemedText style={styles.actionButtonText}>Partager</ThemedText>
-          </TouchableOpacity>
         </View>
-      </ThemedView>
-    </>
+        <ThemedView style={styles.contentBox}>
+          {(displayContent || 'Aucun contenu disponible pour cet article.')
+            .split('\n')
+            .map((line, i) => (
+              <ThemedText style={textStyles.articleContent} key={i}>
+                {highlightText(line || '\u00A0', searchTerm)}
+              </ThemedText>
+            ))}
+        </ThemedView>
+        
+        {versions.length > 0 && (
+          <View style={styles.versionsContainer}>
+            <TouchableOpacity
+              style={styles.versionsButton}
+              onPress={() => setShowVersions(!showVersions)}>
+              <ThemedText type="defaultSemiBold">
+                {selectedVersion ? 'Version du ' + new Date(selectedVersion.effective_date).toLocaleDateString() : 'Historique des versions'}
+              </ThemedText>
+              <IconSymbol
+                name={showVersions ? 'chevron.up' : 'chevron.down'}
+                size={18}
+                color={Colors[colorScheme ?? 'light'].icon}
+              />
+            </TouchableOpacity>
+            
+            {showVersions && (
+              <View style={styles.versionsList}>
+                <TouchableOpacity
+                  style={[styles.versionItem, !selectedVersion && styles.versionItemActive]}
+                  onPress={() => setSelectedVersion(null)}>
+                  <ThemedText
+                    type="defaultSemiBold"
+                    style={!selectedVersion ? styles.versionItemActiveText : {}}>
+                    Version actuelle
+                  </ThemedText>
+                </TouchableOpacity>
+                {versions.map(renderVersionItem)}
+              </View>
+            )}
+          </View>
+        )}
+      </ScrollView>
+      
+      {/* Navigation Tabs: */}
+      <NavigationTabs />
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    position: 'relative',
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
     gap: 16,
   },
   errorContainer: {
@@ -241,18 +242,11 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 24,
   },
-  versionDate: {
-    marginTop: 8,
-    opacity: 0.7,
-  },
   contentBox: {
     padding: 16,
     borderRadius: 12,
     backgroundColor: 'rgba(0, 0, 0, 0.03)',
     marginBottom: 24,
-  },
-  articleContent: {
-    lineHeight: 22,
   },
   versionsContainer: {
     marginBottom: 16,
@@ -282,26 +276,16 @@ const styles = StyleSheet.create({
   versionItemActiveText: {
     color: 'white',
   },
-  actionBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.05)',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+});
+
+const textStyles = StyleSheet.create({
+  articleContent: {
+    lineHeight: 22,
+    textAlign: 'justify',
   },
-  actionButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 8,
-  },
-  actionButtonText: {
-    marginTop: 4,
+  versionDate: {
+    marginTop: 0,
+    opacity: 0.7,
     fontSize: 12,
   },
 });

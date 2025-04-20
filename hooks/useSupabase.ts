@@ -2,32 +2,43 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { CodeSection, ArticleVersion, SearchResult } from '@/types';
 
+// On étend CodeSection pour inclure breadcrumb et les champs page_number_start/page_number_end optionnels
+export interface CodeSectionWithBreadcrumb extends Omit<CodeSection, 'page_number'> {
+  page_number_start: number | null;
+  page_number_end: number | null;
+  breadcrumb?: string;
+}
+
 export function useArticleSearch() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<SearchResult[]>([]);
 
+  // Nouvelle version qui récupère aussi le breadcrumb depuis la vue SQL
   const searchByCode = async (code: string, sampleResults?: SearchResult[]) => {
     try {
       setLoading(true);
       setError(null);
-      
-      // If sample results are provided, use them instead of making an API call
+      // Si des résultats de test sont fournis, les utiliser
       if (sampleResults) {
         setResults(sampleResults);
         setLoading(false);
         return;
       }
-      
+      // Utilisation de la vue articles_with_breadcrumb
       const { data, error } = await supabase
-        .from('code_sections')
-        .select('id, code, title, content, type')
+        .from('articles_with_breadcrumb')
+        .select('id, code, title, content, type, breadcrumb')
         .ilike('code', `%${code}%`)
         .limit(10);
-      
       if (error) throw error;
-      
-      setResults(data as SearchResult[]);
+      // Adaptation : garantir que 'content' soit string et ajouter 'highlight' vide
+      const safeResults = (data ?? []).map((item: any) => ({
+        ...item,
+        content: item.content ?? '',
+        highlight: '',
+      }));
+      setResults(safeResults);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
@@ -35,32 +46,34 @@ export function useArticleSearch() {
     }
   };
 
-  const searchByText = async (query: string, sampleResults?: SearchResult[]) => {
+  // Idem pour searchByText
+  const searchByText = async (query: string, sampleResults?: SearchResult[]): Promise<SearchResult[]> => {
     try {
       setLoading(true);
       setError(null);
-      
-      // If sample results are provided, use them instead of making an API call
       if (sampleResults) {
         setResults(sampleResults);
         setLoading(false);
-        return;
+        return sampleResults;
       }
-      
-      // Using PostgreSQL full-text search
+      // Utilisation de la vue articles_with_breadcrumb
       const { data, error } = await supabase
-        .from('code_sections')
-        .select('id, code, title, content, type')
-        .textSearch('search_vector', query, {
-          config: 'french',
-        })
+        .from('articles_with_breadcrumb')
+        .select('id, code, title, content, type, breadcrumb')
+        .textSearch('search_vector', query, { config: 'french' })
         .limit(20);
-      
       if (error) throw error;
-      
-      setResults(data as SearchResult[]);
+      // Adaptation : garantir que 'content' soit string et ajouter 'highlight' vide
+      const safeResults = (data ?? []).map((item: any) => ({
+        ...item,
+        content: item.content ?? '',
+        highlight: '',
+      }));
+      setResults(safeResults);
+      return safeResults;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      return [];
     } finally {
       setLoading(false);
     }
@@ -78,7 +91,7 @@ export function useArticleSearch() {
 export function useArticleDetails(articleId: number | null) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [article, setArticle] = useState<CodeSection | null>(null);
+  const [article, setArticle] = useState<CodeSectionWithBreadcrumb | null>(null);
   const [versions, setVersions] = useState<ArticleVersion[]>([]);
 
   useEffect(() => {
@@ -92,16 +105,14 @@ export function useArticleDetails(articleId: number | null) {
     try {
       setLoading(true);
       setError(null);
-      
+      // On utilise la vue articles_with_breadcrumb pour avoir le breadcrumb
       const { data, error } = await supabase
-        .from('code_sections')
-        .select('*')
+        .from('articles_with_breadcrumb')
+        .select('id, parent_id, type, code, title, content, page_number_start, page_number_end, version_date, created_at, updated_at, breadcrumb')
         .eq('id', id)
         .single();
-      
       if (error) throw error;
-      
-      setArticle(data as CodeSection);
+      setArticle(data as CodeSectionWithBreadcrumb);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
@@ -116,9 +127,7 @@ export function useArticleDetails(articleId: number | null) {
         .select('*')
         .eq('article_id', id)
         .order('effective_date', { ascending: false });
-      
       if (error) throw error;
-      
       setVersions(data as ArticleVersion[]);
     } catch (err) {
       console.error('Error fetching article versions:', err);
