@@ -17,6 +17,10 @@ const MAPPING = {
   'text.book.closed.fill': 'menu_book',
   'bookmark.fill': 'bookmark',
   'gearshape.fill': 'settings',
+  'plus': 'add',
+  'minus': 'remove',
+  'checkbox.green': 'check-circle',
+  'cross.red': 'cancel',
 } as unknown as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],
@@ -24,7 +28,8 @@ const MAPPING = {
   >
 >;
 
-export type IconSymbolName = keyof typeof MAPPING;
+// Ajout explicite des noms MaterialIcons utilisés dans la logique personnalisée
+export type IconSymbolName = keyof typeof MAPPING | 'checkbox.green' | 'cross.red' | 'check-circle' | 'cancel';
 
 /**
  * An icon component that uses native SFSymbols on iOS, and MaterialIcons on Android and web. This ensures a consistent look across platforms, and optimal resource usage.
@@ -43,5 +48,14 @@ export function IconSymbol({
   style?: StyleProp<TextStyle>;
   weight?: SymbolWeight;
 }) {
+  // Affichage direct pour les icônes custom
+  if (name === 'checkbox.green') {
+    return <MaterialIcons name="check-circle" size={size} color={color} style={style} />;
+  }
+  if (name === 'cross.red') {
+    return <MaterialIcons name="cancel" size={size} color={color} style={style} />;
+  }
+  // Icônes classiques
+  // @ts-ignore: mapping personnalisé
   return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
 }

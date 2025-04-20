@@ -23,38 +23,6 @@ Cette application mobile permet de rechercher et de consulter des articles de lo
 
 ---
 
-## Architecture de la base de données (Supabase)
-
-### Table : `code_sections`
-- **id** : identifiant unique (clé primaire)
-- **parent_id** : référence à la section parente (clé étrangère sur `code_sections.id`)
-- **type** : type de section (`livre`, `partie`, `titre`, `chapitre`, `section`, `sous_titre`, `article`)
-- **code** : code unique de la section
-- **title** : titre de la section
-- **content** : contenu textuel (optionnel)
-- **page_number_start** / **page_number_end** : pagination
-- **version_date** : date de version
-- **created_at** / **updated_at** : timestamps
-- **search_vector** : champ pour l’indexation full-text (PostgreSQL tsvector)
-
-#### Index et triggers
-- Index sur `code`, `parent_id`, `type`
-- Trigger pour la mise à jour automatique du champ `search_vector` (full-text search en français)
-
-### Table : `article_versions`
-- **id** : identifiant unique (clé primaire)
-- **article_id** : référence à l'article dans `code_sections` (clé étrangère)
-- **version_content** : contenu de la version
-- **effective_date** : date d'effet de la version
-- **created_at** : timestamp
-- Index sur `effective_date`
-
-### Table : `article_references`
-- **source_article_id** : identifiant de l'article source (clé primaire, clé étrangère sur `code_sections.id`)
-- **target_article_id** : identifiant de l'article cible (clé primaire, clé étrangère sur `code_sections.id`)
-
----
-
 ## Paramétrage du projet (Expo)
 
 - Le projet utilise Expo SDK 52 et React 18.

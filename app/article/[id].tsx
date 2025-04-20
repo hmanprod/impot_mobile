@@ -43,37 +43,6 @@ export default function ArticleDetailScreen() {
     setUserId(session?.user?.id || null);
   };
 
-  const handleToggleBookmark = async () => {
-    if (!userId) {
-      router.push('/auth');
-      return;
-    }
-
-    if (isBookmarked) {
-      const bookmark = bookmarks.find(b => b.article_id === articleId);
-      if (bookmark) {
-        await removeBookmark(bookmark.id);
-        setIsBookmarked(false);
-      }
-    } else if (articleId) {
-      await addBookmark(articleId);
-      setIsBookmarked(true);
-    }
-  };
-
-  const handleShare = async () => {
-    if (!article) return;
-
-    try {
-      await Share.share({
-        message: `${article.code} - ${article.title}\n\n${article.content || ''}`,
-        title: article.code,
-      });
-    } catch (error) {
-      console.error('Error sharing article:', error);
-    }
-  };
-
   const handleSelectVersion = (version: ArticleVersion) => {
     setSelectedVersion(version);
     setShowVersions(false);
@@ -84,20 +53,19 @@ export default function ArticleDetailScreen() {
       key={version.id}
       style={styles.versionItem}
       onPress={() => handleSelectVersion(version)}>
-      <ThemedText type="defaultSemiBold">
-        {new Date(version.effective_date).toLocaleDateString()}
-      </ThemedText>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <ThemedText type="defaultSemiBold">
+          Mise à jour du {new Date(version.effective_date).toLocaleDateString()}
+        </ThemedText>
+        <IconSymbol
+          name="chevron.right"
+          size={16}
+          color={Colors[colorScheme ?? 'light'].icon}
+          style={{ marginLeft: 8 }}
+        />
+      </View>
     </TouchableOpacity>
   );
-
-  // Popup générique pour fonctionnalités non disponibles
-  const showComingSoon = () => {
-    Alert.alert(
-      'Fonctionnalité à venir',
-      `Cette fonctionnalité n'est pas encore disponible dans cette version de l'application.`,
-      [{ text: 'OK' }]
-    );
-  };
 
   if (loading) {
     return (
@@ -148,9 +116,28 @@ export default function ArticleDetailScreen() {
               <ThemedText type="title">{article.title}</ThemedText>
               {/* Chemin de fer sous le header, à la place de la date */}
               {article && 'breadcrumb' in article && article.breadcrumb && (
-                <ArticleBreadcrumb breadcrumb={article.breadcrumb} style={{ marginTop: 4, marginBottom: 8, color: Colors[colorScheme ?? 'light'].text, fontSize: 12 }} />
+                <ArticleBreadcrumb breadcrumb={article.breadcrumb} style={{ marginTop: 4, marginBottom: 0, color: Colors[colorScheme ?? 'light'].text, fontSize: 12 }} />
               )}
-              <ThemedText style={textStyles.versionDate}>Dernière mise à jour: {new Date(article.version_date).toLocaleDateString()}</ThemedText>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <ThemedText style={textStyles.versionDate}>
+                  Dernière mise à jour: {new Date(article.version_date).toLocaleDateString()}
+                </ThemedText>
+                {(!selectedVersion || selectedVersion.effective_date === article.version_date) ? (
+                  <IconSymbol
+                    name="checkbox.green"
+                    size={18}
+                    color="#2ecc40"
+                    style={{ marginLeft: 6 }}
+                  />
+                ) : (
+                  <IconSymbol
+                    name="cross.red"
+                    size={18}
+                    color="#ff4136"
+                    style={{ marginLeft: 6 }}
+                  />
+                )}
+              </View>
             </View>
         
           </View>
@@ -175,7 +162,7 @@ export default function ArticleDetailScreen() {
                 {selectedVersion ? 'Version du ' + new Date(selectedVersion.effective_date).toLocaleDateString() : 'Historique des versions'}
               </ThemedText>
               <IconSymbol
-                name={showVersions ? 'chevron.up' : 'chevron.down'}
+                name={showVersions ? 'minus' : 'plus'}
                 size={18}
                 color={Colors[colorScheme ?? 'light'].icon}
               />
@@ -186,11 +173,19 @@ export default function ArticleDetailScreen() {
                 <TouchableOpacity
                   style={[styles.versionItem, !selectedVersion && styles.versionItemActive]}
                   onPress={() => setSelectedVersion(null)}>
-                  <ThemedText
-                    type="defaultSemiBold"
-                    style={!selectedVersion ? styles.versionItemActiveText : {}}>
-                    Version actuelle
-                  </ThemedText>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <ThemedText
+                      type="defaultSemiBold"
+                      style={!selectedVersion ? styles.versionItemActiveText : {}}>
+                      Version actuelle
+                    </ThemedText>
+                    <IconSymbol
+                      name="chevron.right"
+                      size={16}
+                      color={Colors[colorScheme ?? 'light'].icon}
+                      style={{ marginLeft: 8 }}
+                    />
+                  </View>
                 </TouchableOpacity>
                 {versions.map(renderVersionItem)}
               </View>
