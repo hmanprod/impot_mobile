@@ -35,4 +35,19 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# Android keystore (private, do not commit)
+android/app/*.keystore
+android/app/*.jks
+android/app/*.p12
+
+# Gradle properties with secrets (optional, if you store secrets here)
+android/gradle.properties
+
+# APK and build outputs
+android/app/build/
+android/app/build/outputs/
+
+# Local signing config backup (if any)
+android/app/key.properties
+
 app-example
