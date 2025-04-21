@@ -60,8 +60,9 @@ export function useArticleSearch() {
       const { data, error } = await supabase
         .from('articles_with_breadcrumb')
         .select('id, code, title, content, type, breadcrumb')
-        .textSearch('search_vector', query, { config: 'french' })
-        .limit(20);
+        .ilike('type', 'article')
+        .or(`content.ilike.%${query}%,title.ilike.%${query}%`)
+        .limit(20); // TODO REMOVE LIMIT AND USE LAZY LOADING
       if (error) throw error;
       // Adaptation : garantir que 'content' soit string et ajouter 'highlight' vide
       const safeResults = (data ?? []).map((item: any) => ({

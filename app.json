@@ -14,9 +14,9 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#333333"
       },
-      "package": "com.anonymous.mobile"
+      "package": "com.hman.cdimada"
     },
     "web": {
       "bundler": "metro",
@@ -30,7 +30,7 @@
         {
           "image": "./assets/images/logo.png",
           "resizeMode": "contain",
-          "backgroundColor": "#000000"
+          "backgroundColor": "#333333"
         }
       ]
     ],

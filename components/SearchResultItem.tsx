@@ -68,3 +68,5 @@ export const SearchResultItem: React.FC<Props> = ({ item, onPress, styles, searc
     </TouchableOpacity>
   );
 };
+
+export default SearchResultItem;

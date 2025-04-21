@@ -67,16 +67,16 @@ execute FUNCTION tsvector_update_trigger(
   'content'
 );
 
-create view public.articles_with_breadcrumb as
+create or replace view public.articles_with_breadcrumb as
 select
   cs.id,
   cs.parent_id,
   cs.type,
   cs.code,
   cs.title,
-  cs.content,
+  coalesce(av.version_content, cs.content) as content,
   cs.page_number_start,
-  cs.version_date,
+  av.effective_date as version_date,
   cs.created_at,
   cs.updated_at,
   cs.search_vector,
@@ -112,4 +112,11 @@ select
       path
   ) as breadcrumb
 from
-  code_sections cs;
+  code_sections cs
+  left join lateral (
+    select *
+    from article_versions
+    where article_id = cs.id
+    order by effective_date desc
+    limit 1
+  ) av on true;

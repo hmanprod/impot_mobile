@@ -1,4 +1,4 @@
-package com.anonymous.mobile
+package com.hman.cdimada
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
