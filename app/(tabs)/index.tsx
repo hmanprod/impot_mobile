@@ -141,7 +141,10 @@ export default function SearchScreen() {
               resizeMode="contain"
             />
             <ThemedText style={styles.welcomeText}>
-              Que souhaitez-vous rechercher{'\n'}aujourd'hui?
+              Bonjour !
+            </ThemedText>
+            <ThemedText style={styles.welcomeText}>
+              Que souhaitez-vous rechercher?
             </ThemedText>
           </View>
         )}
@@ -162,7 +165,7 @@ export default function SearchScreen() {
                 styles.searchInputText,
                 { color: Colors[colorScheme ?? 'light'].text }
               ]}
-              placeholder="Rechercher un article ou un texte..."
+              placeholder="Entrer un mot clé ou un article ..."
               placeholderTextColor={Colors[colorScheme ?? 'light'].icon}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -193,9 +196,17 @@ export default function SearchScreen() {
               color="white"
               weight="bold"
             />
-            <Text style={styles.searchButtonText}>Rechercher un article</Text>
+            <Text style={styles.searchButtonText}>Rechercher maintenant</Text>
           </TouchableOpacity>
         </View>
+
+        {!loading && results.length === 0 && searchQuery.length > 0 && (
+          <View style={{ alignItems: 'center', marginTop: 0, marginBottom: 20 }}>
+            <ThemedText style={{ fontSize: 14, color: '#888', textAlign: 'center' }}>
+              Aucune résultat ne correspond à votre recherche
+            </ThemedText>
+          </View>
+        )}
 
         {loading && (
           <SearchSkeleton />
@@ -232,6 +243,7 @@ export default function SearchScreen() {
             </View>
           </View>
         )}
+        
         {!loading && results.length > 0 && (
           <View style={styles.resultsContainer}>
             <ThemedText style={styles.resultsTitle}>Résultats</ThemedText>
@@ -265,7 +277,7 @@ const styles = StyleSheet.create({
   welcomeContainer: {
     alignItems: 'flex-start',
     marginTop: 40,
-    marginBottom: 30,
+    marginBottom: 10,
     paddingHorizontal: 24,
   },
   logo: {
@@ -275,8 +287,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   welcomeText: {
-    fontSize: 32,
-    lineHeight: 37,
+    fontSize: 30,
+    lineHeight: 40,
     color: '#000000',
     fontFamily: 'System',
     fontWeight: '700',
@@ -305,6 +317,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 16,
   },
   searchInputText: {
     flex: 1,
