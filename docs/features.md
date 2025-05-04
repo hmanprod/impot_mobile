@@ -23,8 +23,14 @@ Ce document liste les fonctionnalités majeures de l'application, reconstituées
 - Configuration des notifications.
 
 ## Authentification
-- Connexion par email avec lien magique (Magic Link).
-- Gestion des états de connexion/déconnexion.
+- Inscription par email et mot de passe.
+  - Demande d'informations spécifiques pour les utilisateurs B2B lors de l'inscription.
+  - Case à cocher pour accepter les conditions d'utilisation.
+- Connexion par email et mot de passe.
+- Connexion via Google.
+- Possibilité de réinitialiser le mot de passe (mot de passe oublié).
+- Gestion des états de connexion/déconnexion (connecté/déconnecté).
+
 
 ## Expérience utilisateur
 - Interface moderne avec navigation par onglets.
