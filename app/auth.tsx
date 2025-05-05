@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, TouchableOpacity, View, Alert } from 'react-native';
 import { Stack, router } from 'expo-router';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -7,6 +7,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import LoginForm from '@/components/LoginForm';
 import SignUpForm from '@/components/SignUpForm';
 import { supabase } from '@/lib/supabase';
 
@@ -17,13 +18,43 @@ enum AuthView {
 }
 
 export default function AuthScreen() {
-  
   const colorScheme = useColorScheme();
   const [currentView, setCurrentView] = useState<AuthView>(AuthView.Login);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSignUp = () => {
-    console.log('Signing up...');
+  const handleLogin = async (email: string, password: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+      router.replace('/(tabs)');
+    } catch (err) {
+      setError((err as Error).message);
+      Alert.alert('Login Error', (err as Error).message);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleSignUp = async (formData: any) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
+      if (error) throw error;
+      router.replace('/(tabs)');
+    } catch (err) {
+      Alert.alert('Signup Error', (err as Error).message);
+    } finally {setLoading(false)};
+  }
 
   const handleSwitchToLogin = () => {
     setCurrentView(AuthView.Login);
@@ -129,7 +160,7 @@ export default function AuthScreen() {
         <View style={styles.form}>          
           {currentView === AuthView.Login && (
             <>
-              <ThemedText style={styles.subtitle}>Login Screen</ThemedText>
+             <LoginForm loading={loading} onLogin={handleLogin} onForgotPasswordPress={() => setCurrentView(AuthView.ForgotPassword)}/>
               <TouchableOpacity onPress={() => setCurrentView(AuthView.SignUp)}>
                 <ThemedText style={styles.switchLink}>Don't have an account? Sign Up</ThemedText>
               </TouchableOpacity>
@@ -142,6 +173,7 @@ export default function AuthScreen() {
           {currentView === AuthView.SignUp && (
             <View style={styles.signUpFormContainer}>
               <SignUpForm
+                loading={loading}
                 onSignUp={handleSignUp}
                 onSwitchToLogin={handleSwitchToLogin}
               />

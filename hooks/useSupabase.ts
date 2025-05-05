@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { CodeSection, ArticleVersion, SearchResult } from '@/types';
+import { Session, User } from '@supabase/supabase-js';
 
 // On étend CodeSection pour inclure breadcrumb et les champs page_number_start/page_number_end optionnels
 export interface CodeSectionWithBreadcrumb extends Omit<CodeSection, 'page_number'> {
@@ -335,3 +336,23 @@ export function useBookmarks(userId: string | null) {
     refetch: fetchBookmarks,
   };
 }
+
+export function useAuthentication() {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+        setSession(session ?? null);
+      }
+    );
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  return { user, session };
+}
+

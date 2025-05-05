@@ -5,10 +5,11 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorScheme } from '@/hooks/useColorScheme'; 
 
 interface SignUpFormProps {
   onSignUp: (formData: SignUpFormData) => void;
+  loading: boolean;
   onSwitchToLogin: () => void;
 }
 
@@ -20,24 +21,62 @@ export interface SignUpFormData {
   acceptTerms: boolean;
 }
 
-const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin }) => {
+interface StructureFormData {
+  structureType: 'consultant' | 'entreprise' | 'autre';
+  companyName: string;
+  activityDescription: string;
+  employeeCount?: string; // Changed to string to store the selected value
+}
+
+const activityOptions = [
+  "Comptabilité et fiscalité",
+  "Conseil en gestion",
+  "Audit financier",
+  "Droit des affaires",
+  "Gestion de patrimoine",
+  "Autre",
+];
+
+const employeeCountOptions = ["Consultant", "Micro-entreprise", "Petite entreprise", "Moyenne entreprise", "Grosse entreprise"];
+
+const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, loading }) => {
   const colorScheme = useColorScheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [industry, setIndustry] = useState('');
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+  const [isOtherActivity, setIsOtherActivity] = useState(false);
+  const [structureData, setStructureData] = useState<StructureFormData>({
+    structureType: 'consultant',
+    companyName: '',
+    activityDescription: '',
+  });
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  const handleSignUp = () => {
-    // Basic validation (more comprehensive validation needed)
-    if (!email || !password || !companyName || !industry || !acceptTerms) {
-      alert('Please fill in all fields and accept the terms.');
+    const handleChangeActivity = (value: string) => {
+      if (value === "Autre") {
+        setIsOtherActivity(true);
+      } else {
+        setIsOtherActivity(false);
+      }
+      setStructureData({ ...structureData, activityDescription: value });
+    };
+  const handleContinue = () => {
+    if (!email || !password) {
+      alert('Please fill in email and password.');
       return;
     }
+    setCurrentStep(2);
+  };
 
-    setLoading(true);
-    onSignUp({ email, password, companyName, industry, acceptTerms });
+  const handleSignUp = () => {
+    if (currentStep === 1) {
+      handleContinue();
+    }else if(!acceptTerms) {
+        alert('Please accept the terms of service.');
+        return;
+      }
+
+      onSignUp({ email, password, companyName: structureData.companyName, industry: structureData.activityDescription, acceptTerms });    
     // setLoading(false); // Set loading to false after async operation in parent
   };
 
@@ -45,6 +84,11 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin }) =>
   const textColor = Colors[colorScheme ?? 'light'].text;
   const placeholderColor = Colors[colorScheme ?? 'light'].icon;
   const tintColor = Colors[colorScheme ?? 'light'].tint;
+
+  const handleBack = () => {
+    setCurrentStep(1);
+  };
+
 
   return (
     <ThemedView style={styles.container}>
@@ -56,78 +100,142 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin }) =>
       </ThemedText>
 
       <View style={styles.form}>
-        <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}>
-          <IconSymbol name="envelope" size={20} color={placeholderColor} />
-          <TextInput
-            style={[styles.input, { color: textColor }]}
-            placeholder="Email"
-            placeholderTextColor={placeholderColor}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-        </View>
+        {currentStep === 1 && (
+          <>
+            <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}>
+              <IconSymbol name="envelope" size={20} color={placeholderColor} />
+              <TextInput
+                style={[styles.input, { color: textColor }]}
+                placeholder="Email"
+                placeholderTextColor={placeholderColor}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+            </View>
 
-        <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}>
-          <IconSymbol name="lock.shield" size={20} color={placeholderColor} />
-          <TextInput
-            style={[styles.input, { color: textColor }]}
-            placeholder="Password"
-            placeholderTextColor={placeholderColor}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-        </View>
+            <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}>
+              <IconSymbol name="lock.shield" size={20} color={placeholderColor} />
+              <TextInput
+                style={[styles.input, { color: textColor }]}
+                placeholder="Password"
+                placeholderTextColor={placeholderColor}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+              />
+            </View>
+          </>
+        )}
 
-        {/* B2B Information Fields */}
-        <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}>
-          <IconSymbol name="building.columns" size={20} color={placeholderColor} />
-          <TextInput
-            style={[styles.input, { color: textColor }]}
-            placeholder="Company Name"
-            placeholderTextColor={placeholderColor}
-            value={companyName}
-            onChangeText={setCompanyName}
-            autoCapitalize="words"
-          />
-        </View>
+        {currentStep === 2 && (<>
+            <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}>
+              <IconSymbol name="briefcase" size={20} color={placeholderColor} />
+                <View style={[styles.selectContainer, { backgroundColor: inputBackgroundColor }]}>
+                  <select 
+                    style={[styles.selectInput, { color: textColor}]}
+                    value={structureData.structureType}
+                    onChange={(e) =>
+                      setStructureData({ ...structureData, structureType: e.target.value as any })
+                    }
+                  >
+                    <option value="consultant">Consultant</option>
+                    <option value="entreprise">Entreprise</option>
+                    <option value="autre">Autre</option>
+                  </select>
+                </View>
+            </View>
 
-        <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}>
-          <IconSymbol name="briefcase" size={20} color={placeholderColor} />
-          <TextInput
-            style={[styles.input, { color: textColor }]}
-            placeholder="Industry"
-            placeholderTextColor={placeholderColor}
-            value={industry}
-            onChangeText={setIndustry}
-            autoCapitalize="words"
-          />
-        </View>
+            <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}>
+              <IconSymbol name="building.columns" size={20} color={placeholderColor} />
+              <TextInput
+                style={[styles.input, { color: textColor, flex: 1 }]}
+                placeholder="Nom commercial"
+                placeholderTextColor={placeholderColor}
+                value={structureData.companyName}
+                onChangeText={(text) => setStructureData({ ...structureData, companyName: text })}
+                autoCapitalize="words"
+              />
+            </View>           
 
-        {/* Terms of Service Checkbox */}
-        <View style={styles.checkboxContainer}>
-          <Checkbox
-            value={acceptTerms}
-            onValueChange={setAcceptTerms}
-            color={acceptTerms ? tintColor : undefined}
-          />
-          <ThemedText style={styles.checkboxLabel}>
-            I agree to the terms of service
-          </ThemedText>
-        </View>
+            <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}>
+              <IconSymbol name="briefcase" size={20} color={placeholderColor} />
+                <View style={[styles.selectContainer, { backgroundColor: inputBackgroundColor }]}>
+                  <select
+                      style={[styles.selectInput, { color: textColor }]}
+                      value={structureData.activityDescription}
+                      onChange={(e) => handleChangeActivity(e.target.value)}
+                    >
+                      {activityOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+                    </select>
+                    {isOtherActivity && (
+                      <TextInput
+                        style={[styles.input, { color: textColor }]}
+                        placeholder="Précisez votre activité"
+                        placeholderTextColor={placeholderColor}
+                        value={structureData.activityDescription}
+                        onChangeText={(text) => setStructureData({ ...structureData, activityDescription: text })}
+                        autoCapitalize="sentences"
+                      />
+                    )}
+                </View>
+            </View>
 
+            {(structureData.structureType === 'entreprise' || structureData.structureType === 'autre') && (
+            <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}>
+              <IconSymbol name="users" size={20} color={placeholderColor} />
+              <View style={[styles.selectContainer, { backgroundColor: inputBackgroundColor }]}>
+                <select 
+                  style={[styles.selectInput, { color: textColor }]}
+                  value={structureData.employeeCount || ''}
+                  onChange={(e) => {                    
+                    const selectedValue = e.target.value;
+                   setStructureData((prevData) => ({ ...prevData, employeeCount: selectedValue }));
+                  }}
+                >
+                  {employeeCountOptions.map((option, index) => (
+                    <option key={index} value={option}>
+                      {option}
+                    </option>
+                   ))}                
+                </select>
+                </View>
+            </View>
+            )}
+            <View style={styles.checkboxContainer}>
+            </View>
+            </View>)}
+
+
+            <View style={styles.checkboxContainer}>
+
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: tintColor }]}
+              onPress={handleBack}
+              disabled={loading}
+            >
+              <ThemedText style={styles.buttonText}>
+                Retour
+              </ThemedText>
+            </TouchableOpacity>
+               <Checkbox
+                value={acceptTerms}
+                onValueChange={setAcceptTerms}
+                color={acceptTerms ? tintColor : undefined}>               
+              </ThemedText>
+            </TouchableOpacity>
+          </>
+            )}
         <TouchableOpacity
           style={[styles.button, { backgroundColor: tintColor }]}
-          onPress={handleSignUp}
+          onPress={currentStep === 1 ? handleContinue : handleSignUp}
           disabled={loading}
         >
           <ThemedText style={styles.buttonText}>
-            {loading ? 'Signing Up...' : 'Sign Up'}
+            {loading ? 'Signing Up...' : currentStep === 1 ? 'Continuer' : 'S\'inscrire'}
           </ThemedText>
         </TouchableOpacity>
-
         <TouchableOpacity style={styles.switchButton} onPress={onSwitchToLogin}>
           <ThemedText style={styles.switchButtonText}>
             Already have an account? <ThemedText type="link">Sign In</ThemedText>
@@ -176,6 +284,14 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 16,
     paddingVertical: 0, // Remove vertical padding
+  },  
+    selectContainer: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  selectInput: {
+    fontSize: 16,
+    paddingVertical: 0, // Remove vertical padding
   },
   checkboxContainer: {
     flexDirection: 'row',
@@ -193,6 +309,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 12,
   },
+
   buttonText: {
     color: 'white',
     fontWeight: '600',
