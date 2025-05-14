@@ -40,6 +40,10 @@ keystor pw : 123456CDI
 keystor alias : hmanprod
 
 ## BUILD ANDROID
+
+Create Bundle
+npx react-native bundle --platform android --dev false --entry-file node_modules/expo-router/entry.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
+
 cd android
 ./gradlew assembleRelease
 
