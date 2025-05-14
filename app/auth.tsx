@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View, Alert } from 'react-native';
 import { Stack, router } from 'expo-router';
 
@@ -31,25 +31,54 @@ export default function AuthScreen() {
         email,
         password,
       });
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'email_not_confirmed') {
+          setError('Veuillez confirmer votre adresse email avant de vous connecter.');
+        } else {
+          setError(error.message);
+        }
+        throw error;
+      }
       router.replace('/(tabs)');
-    } catch (err) {
-      setError((err as Error).message);
-      Alert.alert('Login Error', (err as Error).message);
+    } catch (err: any) {
+      if (err?.code === 'email_not_confirmed') {
+        setError('Veuillez confirmer votre adresse email avant de vous connecter.');
+      } else if (err?.message) {
+        setError(err.message);
+      } else {
+        setError('Erreur de connexion.');
+      }
+      Alert.alert('Login Error', err?.message || 'Erreur de connexion.');
     } finally {
       setLoading(false);
     }
   };
 
+
   const handleSignUp = async (formData: any) => {
     setLoading(true);
     setError(null);
     try {
-      const { error } = await supabase.auth.signUp({
+      // 1. Register user with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
       });
       if (error) throw error;
+      const user = data?.user;
+      // 2. If registration succeeded, insert profile data
+      if (user) {
+        const { error: profileError } = await supabase
+          .from('profil')
+          .insert({
+            user_id: user.id,
+            company_name: formData.companyName,
+            activity_description: formData.industry,
+            employee_count: formData.employeeCount || null,
+            test_objective: formData.testObjective || null,
+          });
+        if (profileError) throw profileError;
+      }
       router.replace('/(tabs)');
     } catch (err) {
       Alert.alert('Signup Error', (err as Error).message);
@@ -160,12 +189,14 @@ export default function AuthScreen() {
         <View style={styles.form}>          
           {currentView === AuthView.Login && (
             <>
-             <LoginForm loading={loading} onLogin={handleLogin} onForgotPasswordPress={() => setCurrentView(AuthView.ForgotPassword)}/>
+             <LoginForm
+               loading={loading}
+               onLogin={handleLogin}
+               onForgotPasswordPress={() => setCurrentView(AuthView.ForgotPassword)}
+               errorMessage={error}
+             />
               <TouchableOpacity onPress={() => setCurrentView(AuthView.SignUp)}>
                 <ThemedText style={styles.switchLink}>Don't have an account? Sign Up</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setCurrentView(AuthView.ForgotPassword)}>
-                <ThemedText style={styles.switchLink}>Forgot Password?</ThemedText>
               </TouchableOpacity>
             </>
           )}
@@ -193,9 +224,6 @@ export default function AuthScreen() {
             </>
           )}
           
-         <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
-            <ThemedText>Cancel</ThemedText>
-          </TouchableOpacity>
         </View>
       </ThemedView>
     </>

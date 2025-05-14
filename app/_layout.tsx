@@ -7,7 +7,7 @@ import { useEffect, View } from 'react'; // Import router
 import 'react-native-reanimated';
 import { ActivityIndicator } from 'react-native';
 
-import { useAuthentication } from '@/hooks/useAuthentication';
+import { useAuthentication } from '@/hooks/useSupabase';
 import { useColorScheme } from '@/hooks/useColorScheme';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -24,11 +24,10 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  const { user, isLoading } = useAuthentication();
+  const { user } = useAuthentication();
 
   useEffect(() => {
     // Redirect only when authentication status is determined and not loading
-    if (!isLoading) {
       if (user) {
         // User is authenticated, redirect to the main app
         router.replace('/(tabs)'); // Use router.replace for navigation
@@ -36,17 +35,16 @@ export default function RootLayout() {
         // User is not authenticated, redirect to the auth screen
         router.replace('/auth'); // Use router.replace for navigation
       }
-    }
-  }, [user, isLoading, loaded]); // Add loaded as a dependency
+  }, [user]);
 
-  if (!loaded || isLoading) {
-    // Render a loading indicator while fonts are loading or authentication is in progress
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
+  // if (!loaded) {
+  //   // Render a loading indicator while fonts are loading or authentication is in progress
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+  //       <ActivityIndicator size="large" />
+  //     </View>
+  //   );
+  // }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

@@ -67,6 +67,21 @@ execute FUNCTION tsvector_update_trigger(
   'content'
 );
 
+-- Table profil pour stocker la description du tunnel d'inscription
+CREATE TABLE IF NOT EXISTS public.profil (
+  id serial PRIMARY KEY,
+  user_id uuid NOT NULL,
+  company_name text NOT NULL,
+  activity_description text NOT NULL,
+  employee_count text,
+  test_objective text,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT profil_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_profil_user_id ON public.profil (user_id);
+
 create or replace view public.articles_with_breadcrumb as
 select
   cs.id,

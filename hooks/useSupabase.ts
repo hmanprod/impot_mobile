@@ -344,8 +344,17 @@ export function useAuthentication() {
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        setUser(session?.user ?? null);
-        setSession(session ?? null);
+        console.log('onAuthStateChange event:', _event);
+        console.log('Session received:', session);
+        console.log('User received:', session?.user ?? null);
+
+        if (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION') {
+          setUser(session?.user ?? null);
+          setSession(session ?? null);
+        } else if (_event === 'SIGNED_OUT') {
+          setUser(null);
+          setSession(null);
+        }
       }
     );
     return () => {

@@ -21,6 +21,8 @@ const MAPPING = {
   'minus': 'remove',
   'checkbox.green': 'check-circle',
   'cross.red': 'cancel',
+  'google': 'google', // ADDED for Google icon
+  'users': 'group', // ADDED for users icon
 } as unknown as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],
@@ -29,7 +31,7 @@ const MAPPING = {
 >;
 
 // Ajout explicite des noms MaterialIcons utilisés dans la logique personnalisée
-export type IconSymbolName = keyof typeof MAPPING | 'checkbox.green' | 'cross.red' | 'check-circle' | 'cancel';
+export type IconSymbolName = keyof typeof MAPPING | 'users' | 'google' | 'checkbox.green' | 'cross.red' | 'check-circle' | 'cancel';
 
 /**
  * An icon component that uses native SFSymbols on iOS, and MaterialIcons on Android and web. This ensures a consistent look across platforms, and optimal resource usage.

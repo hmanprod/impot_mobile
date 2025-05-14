@@ -7,8 +7,20 @@ export type ThemedViewProps = ViewProps & {
   darkColor?: string;
 };
 
+function flattenStyles(style: any): any[] {
+  if (Array.isArray(style)) {
+    return style.flat().filter(Boolean);
+  }
+  return [style].filter(Boolean);
+}
+
 export function ThemedView({ style, lightColor, darkColor, ...otherProps }: ThemedViewProps) {
   const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background');
 
-  return <View style={[{ backgroundColor }, style]} {...otherProps} />;
+  return (
+    <View
+      style={flattenStyles([{ backgroundColor }, style])}
+      {...otherProps}
+    />
+  );
 }
