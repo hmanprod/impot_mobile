@@ -3,9 +3,8 @@ import { useFonts } from 'expo-font';
 import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, View } from 'react'; // Import router
+import { useEffect } from 'react'; // Import router
 import 'react-native-reanimated';
-import { ActivityIndicator } from 'react-native';
 
 import { useAuthentication } from '@/hooks/useSupabase';
 import { useColorScheme } from '@/hooks/useColorScheme';

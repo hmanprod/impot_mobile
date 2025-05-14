@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, View, ActivityIndicator, useColorScheme } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
@@ -22,23 +22,6 @@ interface ProfileFormProps {
   error?: string;
 }
 
-const activityOptions = [
-  'Comptabilité et fiscalité',
-  'Conseil en gestion',
-  'Audit financier',
-  'Droit des affaires',
-  'Gestion de patrimoine',
-  'Autre',
-];
-
-const employeeCountOptions = [
-  'Consultant',
-  'Micro-entreprise',
-  'Petite entreprise',
-  'Moyenne entreprise',
-  'Grosse entreprise',
-];
-
 export const ProfileForm: React.FC<ProfileFormProps> = ({
   initialProfile,
   loading,
@@ -51,6 +34,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 }) => {
   const [form, setForm] = useState<ProfileFormData>(initialProfile);
   const [formError, setFormError] = useState<string | null>(null);
+  const colorScheme = useColorScheme() ?? 'light';
 
   useEffect(() => {
     setForm(initialProfile);
@@ -85,12 +69,15 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
   return (
     <ThemedView style={styles.container}>
-      {loading && <ActivityIndicator size="large" color={Colors.primary} />}
+      {loading && <ActivityIndicator size="large" color={Colors[colorScheme ?? 'light'].tint} />}
       {formError && <ThemedText style={styles.error}>{formError}</ThemedText>}
       {error && <ThemedText style={styles.error}>{error}</ThemedText>}
       <ThemedText style={styles.label}>Nom de l'entreprise</ThemedText>
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          { borderColor: Colors[colorScheme].icon }
+        ]}
         value={form.company_name}
         onChangeText={v => handleChange('company_name', v)}
         editable={editMode}
@@ -98,7 +85,10 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       />
       <ThemedText style={styles.label}>Description d'activité</ThemedText>
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          { borderColor: Colors[colorScheme].icon }
+        ]}
         value={form.activity_description}
         onChangeText={v => handleChange('activity_description', v)}
         editable={editMode}
@@ -106,7 +96,10 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       />
       <ThemedText style={styles.label}>Nombre d'employés</ThemedText>
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          { borderColor: Colors[colorScheme].icon }
+        ]}
         value={form.employee_count || ''}
         onChangeText={v => handleChange('employee_count', v)}
         editable={editMode}
@@ -114,7 +107,10 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       />
       <ThemedText style={styles.label}>Objectif de test</ThemedText>
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          { borderColor: Colors[colorScheme].icon }
+        ]}
         value={form.test_objective || ''}
         onChangeText={v => handleChange('test_objective', v)}
         editable={editMode}
@@ -123,11 +119,25 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       <View style={styles.buttonRow}>
         {editMode ? (
           <>
-            <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={handleSave} disabled={saving}>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                { backgroundColor: Colors[colorScheme].tint }
+              ]}
+              onPress={handleSave}
+              disabled={saving}
+            >
               <ThemedText style={styles.buttonText}>{saving ? 'Sauvegarde...' : 'Enregistrer'}</ThemedText>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onCancel} disabled={saving}>
-              <ThemedText style={styles.buttonText}>Annuler</ThemedText>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                { backgroundColor: Colors[colorScheme].card }
+              ]}
+              onPress={onCancel}
+              disabled={saving}
+            >
+              <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].text }]}>Annuler</ThemedText>
             </TouchableOpacity>
           </>
         ) : null}
@@ -147,7 +157,6 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: Colors.gray,
     borderRadius: 6,
     padding: 10,
     marginBottom: 8,
@@ -163,12 +172,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginLeft: 8,
   },
-  saveButton: {
-    backgroundColor: Colors.primary,
-  },
-  cancelButton: {
-    backgroundColor: Colors.gray,
-  },
+  saveButton: {},
+  cancelButton: {},
+
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
