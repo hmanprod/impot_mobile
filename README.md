@@ -39,3 +39,7 @@ This command will move the starter code to the **app-example** directory and cre
 keystor pw : 123456CDI
 keystor alias : hmanprod
 
+## BUILD ANDROID
+cd android
+./gradlew assembleRelease
+
