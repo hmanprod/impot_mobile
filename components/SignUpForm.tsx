@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   FlatList,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import Checkbox from 'expo-checkbox';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -150,70 +151,46 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
     setCurrentStep(1);
   };
 
-  // Function to show the picker modal
-  const showPicker = (options: string[], placeholder: string, callback: (value: string) => void) => {
-    setPickerOptions(options);
-    setPickerPlaceholder(placeholder);
-    setPickerCallback((value: string) => {
-      callback(value);
-      setPickerVisible(false);
-    });
-    setPickerVisible(true);
-  };
-
   // Colors from theme
   const inputBackgroundColor = Colors[colorScheme ?? 'light'].background;
   const textColor = Colors[colorScheme ?? 'light'].text;
   const placeholderColor = Colors[colorScheme ?? 'light'].icon;
   const tintColor = Colors[colorScheme ?? 'light'].tint;
 
-  // Custom picker for cross-platform
+  // Simple cross-platform picker
   const renderPicker = (value: string, options: string[], placeholder: string, onChange: (value: string) => void) => {
-    if (Platform.OS === 'web') {
-      // Web version can use select
-      return (
-        <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}>
-          <select
-            style={{ ...styles.selectInput, color: textColor }}
-            value={value}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)}
-          >
-            <option value="">{placeholder}</option>
-            {options.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-        </View>
-      );
-    } else {
-      // Android/iOS version
-      return (
-        <TouchableOpacity 
-          style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}
-          onPress={() => showPicker(options, placeholder, onChange)}
+    return (
+      <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor, paddingHorizontal: 0 }]}>
+        <Picker
+          selectedValue={value}
+          onValueChange={(itemValue: string | number) => onChange(itemValue.toString())}
+          style={{ flex: 1, color: textColor }}
+          dropdownIconColor={placeholderColor}
         >
-          <ThemedText style={{ flex: 1, color: value ? textColor : placeholderColor }}>
-            {value || placeholder}
-          </ThemedText>
-          <IconSymbol name="chevron.down" size={16} color={placeholderColor} />
-        </TouchableOpacity>
-      );
-    }
+          <Picker.Item label={placeholder} value="" color={placeholderColor} />
+          {options.map((option) => (
+            <Picker.Item key={option} label={option} value={option} color={textColor} />
+          ))}
+        </Picker>
+      </View>
+    );
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <ScrollView 
-        contentContainerStyle={{ flexGrow: 1 }}
+    <ThemedView style={{ flex: 0 }}>
+      <ScrollView
+        style={{ flexGrow: 1 }}
+        contentContainerStyle={{ paddingVertical: 20 }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={true}
       >
-        <ThemedView style={styles.container}>
-          <ThemedText type="title" style={styles.title}>
+        <View style={{ paddingHorizontal: 16 }}>
+          {/* <ThemedText type="title" style={styles.title}>
             Créez votre compte
-          </ThemedText>
-          <ThemedText style={styles.subtitle}>
+          </ThemedText> */}
+          {/* <ThemedText style={styles.subtitle}>
             Entrez vos informations pour commencer
-          </ThemedText>
+          </ThemedText> */}
 
           <View style={styles.form}>
             {currentStep === 1 && (
@@ -268,12 +245,12 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
 
             {currentStep === 2 && (
               <>
-                <ThemedText type="title" style={{ textAlign: 'center', fontSize: 18, marginBottom: 8 }}>
+                {/* <ThemedText type="title" style={{ textAlign: 'center', fontSize: 18, marginBottom: 8 }}>
                   Finalisez votre inscription
-                </ThemedText>
-                <ThemedText style={{ textAlign: 'center', opacity: 0.7, marginBottom: 16 }}>
+                </ThemedText> */}
+                {/* <ThemedText style={{ textAlign: 'center', opacity: 0.7, marginBottom: 16 }}>
                   Merci de compléter ces informations pour personnaliser votre expérience.
-                </ThemedText>
+                </ThemedText> */}
                 
                 <ThemedText style={{ fontWeight: 'bold', marginBottom: 8 }}>Nom de l'entreprise</ThemedText>
                 <TextInput
@@ -288,12 +265,12 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
                 <ThemedText style={{ fontWeight: 'bold', marginBottom: 8, marginTop: 10 }}>Type d'activité</ThemedText>
                 {renderPicker(
                   structureData.activityDescription,
-                  ["Comptabilité", "Gestion", "Audit", "Autre"],
+                  activityOptions,
                   'Sélectionner',
                   handleChangeActivity
                 )}
                 
-                <ThemedText style={{ fontWeight: 'bold', marginBottom: 8, marginTop: 10 }}>Nombre d'employés</ThemedText>
+                <ThemedText style={{ fontWeight: 'bold', marginBottom: 8, marginTop: 0 }}>Nombre d'employés</ThemedText>
                 {renderPicker(
                   structureData.employeeCount || '',
                   employeeCountOptions,
@@ -301,7 +278,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
                   (value) => setStructureData({ ...structureData, employeeCount: value })
                 )}
                 
-                <ThemedText style={{ fontWeight: 'bold', marginBottom: 8, marginTop: 10 }}>
+                {/* <ThemedText style={{ fontWeight: 'bold', marginBottom: 8, marginTop: 10 }}>
                   Votre objectif pour ce test
                 </ThemedText>
                 <TextInput
@@ -312,7 +289,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
                   onChangeText={(text) => setStructureData({ ...structureData, testObjective: text })}
                   multiline
                   numberOfLines={2}
-                />
+                /> */}
                 
                 <View style={styles.checkboxContainer}>
                   <Checkbox
@@ -343,17 +320,17 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
 
             {currentStep === 2 && (
               <TouchableOpacity
-                style={[styles.button, { backgroundColor: tintColor, marginTop: 8 }]}
+                style={[styles.retourButton, { marginTop: 8 }]}
                 onPress={handleBack}
                 disabled={loading}
               >
-                <ThemedText style={styles.buttonText}>
+                <ThemedText style={styles.retourText}>
                   Retour
                 </ThemedText>
               </TouchableOpacity>
             )}
           </View>
-        </ThemedView>
+        </View>
       </ScrollView>
 
       {/* Picker Modal for Android */}
@@ -381,7 +358,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
                   )}
                 />
                 <TouchableOpacity
-                  style={[styles.button, { backgroundColor: tintColor, marginTop: 16 }]}
+                  style={[styles.button, {backgroundColor: tintColor, marginTop: 16 }]}
                   onPress={() => setPickerVisible(false)}
                 >
                   <ThemedText style={styles.buttonText}>Annuler</ThemedText>
@@ -396,6 +373,14 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
 };
 
 const styles = StyleSheet.create({
+  container: {
+    height: '100%',
+    width: '100%',
+  },
+  scrollContent: {
+    flexGrow: 0,
+    paddingVertical: 20,
+  },
   form: {
     width: '100%',
     maxWidth: 400,
@@ -421,7 +406,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 10,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 0,
     marginBottom: 10,
     backgroundColor: '#F3F4F6',
   },
@@ -437,13 +422,25 @@ const styles = StyleSheet.create({
     marginTop: 18,
     borderRadius: 10,
     backgroundColor: '#4285F4',
-    paddingVertical: 14,
+    paddingVertical: 10,
     alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 14,
+  },
+  retourButton: {
+    marginTop: 18,
+    borderRadius: 10,
+    paddingVertical: 0,
+    alignItems: 'center',
+  },
+  retourText: {
+    color: '#333',
+    fontWeight: '600',
+    fontSize: 14,
+    textAlign: 'center',
   },
   googleButton: {
     flexDirection: 'row',
@@ -485,7 +482,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 0,
-    marginTop: 20,
+    marginTop: 10,
   },
   checkboxLabel: {
     marginLeft: 8,

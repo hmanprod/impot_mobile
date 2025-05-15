@@ -27,9 +27,6 @@ export default function LoginForm({ onForgotPasswordPress, onLogin, loading, err
   const tintColor = Colors[colorScheme ?? 'light'].tint;
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="subtitle" style={styles.subtitle}>
-        Entrez vos identifiants pour vous connecter
-      </ThemedText>
 
       {errorMessage ? (
         <ThemedText style={{ color: 'red', marginBottom: 12, textAlign: 'center', fontWeight: 'bold' }}>
@@ -147,13 +144,13 @@ const styles = StyleSheet.create({
     marginTop: 18,
     borderRadius: 10,
     backgroundColor: '#4285F4',
-    paddingVertical: 14,
+    paddingVertical: 10,
     alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 14,
   },
   googleButton: {
     flexDirection: 'row',

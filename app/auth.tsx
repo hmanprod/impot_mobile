@@ -101,6 +101,7 @@ export default function AuthScreen() {
     },
     title: {
       marginTop: 16,
+      fontSize: 24,
       marginBottom: 8,
       textAlign: 'center',
     },
@@ -112,9 +113,10 @@ export default function AuthScreen() {
       opacity: 0.7,
     },
     switchLink: {
-      marginTop: 16,
+      marginTop: 0,
       color: Colors[colorScheme ?? 'light'].tint,
       textAlign: 'center',
+      fontSize: 14,
     },
     form: {
       width: '100%',
@@ -172,7 +174,7 @@ export default function AuthScreen() {
       <Stack.Screen
         options={{
           title: 'Authentification',
-          headerShown: true,
+          headerShown: false,
         }}
       />
       <ThemedView style={styles.container}>
@@ -182,13 +184,14 @@ export default function AuthScreen() {
             size={60}
             color={Colors[colorScheme ?? 'light'].tint}
           />
-          <ThemedText type="title" style={styles.title}>
-            Connectez-vous à votre compte
-          </ThemedText>        
+               
         </View>
         <View style={styles.form}>          
           {currentView === AuthView.Login && (
             <>
+            <ThemedText type="title" style={styles.title}>
+            Connectez-vous à{"\n"}votre compte
+            </ThemedText>   
              <LoginForm
                loading={loading}
                onLogin={handleLogin}
@@ -204,6 +207,9 @@ export default function AuthScreen() {
 
           {currentView === AuthView.SignUp && (
             <View style={styles.signUpFormContainer}>
+              <ThemedText type="title" style={styles.title}>
+                Créez votre compte
+              </ThemedText>   
               <SignUpForm
                 loading={loading}
                 onSignUp={handleSignUp}
