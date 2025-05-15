@@ -16,7 +16,7 @@ import Checkbox from 'expo-checkbox';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import GoogleSvgIcon from '@/components/ui/GoogleSvgIcon';
+// import GoogleSvgIcon from '@/components/ui/GoogleSvgIcon';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -202,21 +202,17 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-    >
+    <ThemedView style={styles.container}>
       <ScrollView 
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
       >
         <ThemedView style={styles.container}>
           <ThemedText type="title" style={styles.title}>
-            Create your account
+            Créez votre compte
           </ThemedText>
           <ThemedText style={styles.subtitle}>
-            Enter your details to get started
+            Entrez vos informations pour commencer
           </ThemedText>
 
           <View style={styles.form}>
@@ -341,7 +337,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
               disabled={loading}
             >
               <ThemedText style={styles.buttonText}>
-                {loading ? 'Signing Up...' : currentStep === 1 ? 'Continuer' : 'S\'inscrire'}
+                {loading ? 'Inscription en cours...' : currentStep === 1 ? 'Continuer' : 'S\'inscrire'}
               </ThemedText>
             </TouchableOpacity>
 
@@ -395,19 +391,11 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-    </KeyboardAvoidingView>
+    </ThemedView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FAFAFA',
-    width: '100%',
-  },
   form: {
     width: '100%',
     maxWidth: 400,

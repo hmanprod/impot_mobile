@@ -48,7 +48,7 @@ export default function AuthScreen() {
       } else {
         setError('Erreur de connexion.');
       }
-      Alert.alert('Login Error', err?.message || 'Erreur de connexion.');
+      Alert.alert('Erreur de connexion', err?.message || 'Erreur de connexion.');
     } finally {
       setLoading(false);
     }
@@ -81,7 +81,7 @@ export default function AuthScreen() {
       }
       router.replace('/(tabs)');
     } catch (err) {
-      Alert.alert('Signup Error', (err as Error).message);
+      Alert.alert('Erreur d\'inscription', (err as Error).message);
     } finally {setLoading(false)};
   }
 
@@ -171,7 +171,7 @@ export default function AuthScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Authentication',
+          title: 'Authentification',
           headerShown: true,
         }}
       />
@@ -183,7 +183,7 @@ export default function AuthScreen() {
             color={Colors[colorScheme ?? 'light'].tint}
           />
           <ThemedText type="title" style={styles.title}>
-            Sign in to your account
+            Connectez-vous à votre compte
           </ThemedText>        
         </View>
         <View style={styles.form}>          
@@ -196,10 +196,11 @@ export default function AuthScreen() {
                errorMessage={error}
              />
               <TouchableOpacity onPress={() => setCurrentView(AuthView.SignUp)}>
-                <ThemedText style={styles.switchLink}>Don't have an account? Sign Up</ThemedText>
+                <ThemedText style={styles.switchLink}>Vous n'avez pas de compte ? Inscrivez-vous</ThemedText>
               </TouchableOpacity>
             </>
           )}
+
 
           {currentView === AuthView.SignUp && (
             <View style={styles.signUpFormContainer}>
@@ -209,7 +210,7 @@ export default function AuthScreen() {
                 onSwitchToLogin={handleSwitchToLogin}
               />
               <TouchableOpacity onPress={() => setCurrentView(AuthView.Login)}>
-                <ThemedText style={styles.switchLink}>Already have an account? Sign In</ThemedText>
+                <ThemedText style={styles.switchLink}>Vous avez déjà un compte ? Connectez-vous</ThemedText>
               </TouchableOpacity>
             </View>
             
@@ -217,9 +218,9 @@ export default function AuthScreen() {
 
           {currentView === AuthView.ForgotPassword && (
             <>
-              <ThemedText style={styles.subtitle}>Forgot Password Screen</ThemedText>
+              <ThemedText style={styles.subtitle}>Récupération de mot de passe</ThemedText>
               <TouchableOpacity onPress={() => setCurrentView(AuthView.Login)}>
-                <ThemedText style={styles.switchLink}>Back to Sign In</ThemedText>
+                <ThemedText style={styles.switchLink}>Retour à la connexion</ThemedText>
               </TouchableOpacity>
             </>
           )}

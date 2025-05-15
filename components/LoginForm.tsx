@@ -28,7 +28,7 @@ export default function LoginForm({ onForgotPasswordPress, onLogin, loading, err
   return (
     <ThemedView style={styles.container}>
       <ThemedText type="subtitle" style={styles.subtitle}>
-        Enter your credentials to log in
+        Entrez vos identifiants pour vous connecter
       </ThemedText>
 
       {errorMessage ? (
@@ -50,7 +50,7 @@ export default function LoginForm({ onForgotPasswordPress, onLogin, loading, err
           />
           <TextInput
             style={[styles.input, { color: Colors[colorScheme ?? 'light'].text }]}
-            placeholder="Email address"
+            placeholder="Adresse email"
             placeholderTextColor={Colors[colorScheme ?? 'light'].icon}
             value={email}
             onChangeText={setEmail}
@@ -72,7 +72,7 @@ export default function LoginForm({ onForgotPasswordPress, onLogin, loading, err
           />
           <TextInput
             style={[styles.input, { color: Colors[colorScheme ?? 'light'].text }]}
-            placeholder="Password"
+            placeholder="Mot de passe"
             placeholderTextColor={Colors[colorScheme ?? 'light'].icon}
             value={password}
             onChangeText={setPassword}
@@ -86,7 +86,7 @@ export default function LoginForm({ onForgotPasswordPress, onLogin, loading, err
           onPress={handleLoginPress}
           disabled={loading}
         >
-          <ThemedText style={styles.buttonText}>Log In</ThemedText>
+          <ThemedText style={styles.buttonText}>Se connecter</ThemedText>
         </TouchableOpacity>
 
         {/* Google Login Button */}
@@ -96,7 +96,7 @@ export default function LoginForm({ onForgotPasswordPress, onLogin, loading, err
         </Pressable> */}
 
         <TouchableOpacity style={styles.forgotPasswordButton} onPress={onForgotPasswordPress}>
-          <ThemedText style={styles.forgotPasswordText}>Forgot password?</ThemedText>
+          <ThemedText style={styles.forgotPasswordText}>Mot de passe oublié ?</ThemedText>
         </TouchableOpacity>
       </View>
     </ThemedView>
