@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
+import { supabase } from '@/lib/supabase';
 import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
   View,
-  Pressable,
   Platform,
   ScrollView,
-  KeyboardAvoidingView,
   Modal,
   TouchableWithoutFeedback,
   FlatList,
@@ -17,7 +16,6 @@ import Checkbox from 'expo-checkbox';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-// import GoogleSvgIcon from '@/components/ui/GoogleSvgIcon';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -25,6 +23,7 @@ interface SignUpFormProps {
   onSignUp: (formData: SignUpFormData) => void;
   loading: boolean;
   onSwitchToLogin: () => void;
+  errorMessage?: string | null;
 }
 
 export interface SignUpFormData {
@@ -61,7 +60,7 @@ const employeeCountOptions = [
   ">20"
 ];
 
-const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, loading }) => {
+const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, loading, errorMessage }: SignUpFormProps) => {
   const colorScheme = useColorScheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -70,7 +69,9 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [formError, setFormError] = useState('');
+  const [checkingEmail, setCheckingEmail] = useState(false);
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [isOtherActivity, setIsOtherActivity] = useState(false);
   const [structureData, setStructureData] = useState<StructureFormData>({
     structureType: 'consultant',
@@ -119,10 +120,28 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
     setStructureData({ ...structureData, activityDescription: value });
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!validateStep1()) {
       return;
     }
+    setCheckingEmail(true);
+    // setEmailError('');
+    // // Vérification email doublon via Supabase
+    // const { data, error } = await supabase
+    //   .from('users')
+    //   .select('email')
+    //   .eq('email', email)
+    //   .maybeSingle();
+    // setCheckingEmail(false);
+    // if (error) {
+    //   console.log(error);
+    //   setEmailError("Erreur lors de la vérification de l'email. Veuillez réessayer.");
+    //   return;
+    // }
+    // if (data) {
+    //   setEmailError('Cet email est déjà utilisé.');
+    //   return;
+    // }
     setCurrentStep(2);
   };
 
@@ -142,9 +161,10 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
       companyName: structureData.companyName,
       industry: structureData.activityDescription,
       employeeCount: structureData.employeeCount,
-      testObjective: structureData.testObjective,
+      // testObjective: structureData.testObjective,
       acceptTerms,
     });
+    setShowConfirmation(true);
   };
 
   const handleBack = () => {
@@ -177,120 +197,136 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
   };
 
   return (
-    <ThemedView style={{ flex: 0 }}>
-      <ScrollView
-        style={{ flexGrow: 1 }}
-        contentContainerStyle={{ paddingVertical: 20 }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={true}
-      >
-        <View style={{ paddingHorizontal: 16 }}>
-          {/* <ThemedText type="title" style={styles.title}>
-            Créez votre compte
-          </ThemedText> */}
-          {/* <ThemedText style={styles.subtitle}>
-            Entrez vos informations pour commencer
-          </ThemedText> */}
+    <ThemedView style={{ flex: 1 }}>
+      {/* Step indicator */}
+      {/* {!showConfirmation && (
+        <View style={{ alignItems: 'center', marginVertical: 16 }}>
+          <ThemedText style={{ fontWeight: 'bold', fontSize: 16 }}>
+            Étape {currentStep} sur 2
+          </ThemedText>
+        </View>
+      )} */}
+      {showConfirmation ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+          <IconSymbol name="envelope" size={48} color={tintColor} style={{ marginBottom: 16 }} />
+          <ThemedText type="title" style={{ textAlign: 'center', marginBottom: 12 }}>
+            Inscription réussie !
+          </ThemedText>
+          <ThemedText style={{ textAlign: 'center', marginBottom: 24 }}>
+            Merci pour votre inscription.
+            {'\n'}Veuillez vérifier votre boîte mail et cliquer sur le lien de confirmation pour activer votre compte.
+          </ThemedText>
+          <TouchableOpacity style={[styles.button, { backgroundColor: tintColor }]} onPress={onSwitchToLogin}>
+            <ThemedText style={styles.buttonText}>Se connecter</ThemedText>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <ScrollView
+          style={{ flexGrow: 1 }}
+          contentContainerStyle={{ paddingVertical: 20 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={true}
+        >
+          <View style={{ paddingHorizontal: 16 }}>
+            <View style={styles.form}>
 
-          <View style={styles.form}>
-            {currentStep === 1 && (
+              {currentStep === 1 && (
               <>
-                <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}> 
-                  <IconSymbol name="envelope" size={20} color={placeholderColor} />
+                <View style={{ marginBottom: 16 }}>
+                  <ThemedText style={styles.label}>Email</ThemedText>
                   <TextInput
-                    style={[styles.input, { color: textColor }]}
+                    style={[styles.input, { color: textColor, backgroundColor: inputBackgroundColor }]}
                     placeholder="Email"
                     placeholderTextColor={placeholderColor}
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={(text) => { setEmail(text); if (formError) setFormError(''); }}
                     autoCapitalize="none"
                     keyboardType="email-address"
                   />
+                  {emailError ? (
+                    <ThemedText style={styles.error}>{emailError}</ThemedText>
+                  ) : null}
+                  {formError ? (
+                    <ThemedText style={styles.error}>{formError}</ThemedText>
+                  ) : null}
+                  {errorMessage ? (
+                    <ThemedText style={styles.error}>{errorMessage}</ThemedText>
+                  ) : null}
                 </View>
-                {emailError ? (
-                  <ThemedText style={{ color: 'red', marginLeft: 10 }}>{emailError}</ThemedText>
-                ) : null}
 
-                <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}> 
-                  <IconSymbol name="lock.shield" size={20} color={placeholderColor} />
+                <View style={{ marginBottom: 16 }}>
+                  <ThemedText style={styles.label}>Mot de passe</ThemedText>
                   <TextInput
-                    style={[styles.input, { color: textColor }]}
+                    style={[styles.input, { color: textColor, backgroundColor: inputBackgroundColor }]}
                     placeholder="Mot de passe"
                     placeholderTextColor={placeholderColor}
                     value={password}
-                    onChangeText={setPassword}
+                    onChangeText={(text) => { setPassword(text); if (formError) setFormError(''); }}
                     secureTextEntry
                   />
+                  {passwordError ? (
+                    <ThemedText style={styles.error}>{passwordError}</ThemedText>
+                  ) : null}
                 </View>
-                {passwordError ? (
-                  <ThemedText style={{ color: 'red', marginLeft: 10 }}>{passwordError}</ThemedText>
-                ) : null}
 
-                <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}> 
-                  <IconSymbol name="lock.shield" size={20} color={placeholderColor} />
+                <View style={{ marginBottom: 16 }}>
+                  <ThemedText style={styles.label}>Confirmez le mot de passe</ThemedText>
                   <TextInput
-                    style={[styles.input, { color: textColor }]}
+                    style={[styles.input, { color: textColor, backgroundColor: inputBackgroundColor }]}
                     placeholder="Confirmez le mot de passe"
                     placeholderTextColor={placeholderColor}
                     value={confirmPassword}
-                    onChangeText={setConfirmPassword}
+                    onChangeText={(text) => { setConfirmPassword(text); if (formError) setFormError(''); }}
                     secureTextEntry
                   />
+                  {confirmPasswordError ? (
+                    <ThemedText style={styles.error}>{confirmPasswordError}</ThemedText>
+                  ) : null}
                 </View>
-                {confirmPasswordError ? (
-                  <ThemedText style={{ color: 'red', marginLeft: 10 }}>{confirmPasswordError}</ThemedText>
-                ) : null}
-              </>
-            )}
 
-            {currentStep === 2 && (
+                <TouchableOpacity
+                  style={[styles.button, { backgroundColor: tintColor, marginTop: 16 }]}
+                  onPress={handleContinue}
+                  disabled={loading || checkingEmail}
+                >
+                  <ThemedText style={styles.buttonText}>
+                    {(loading || checkingEmail) ? 'Vérification...' : 'Continuer'}
+                  </ThemedText>
+                </TouchableOpacity>
+              </>
+)}
+
+              {currentStep === 2 && (
               <>
-                {/* <ThemedText type="title" style={{ textAlign: 'center', fontSize: 18, marginBottom: 8 }}>
-                  Finalisez votre inscription
-                </ThemedText> */}
-                {/* <ThemedText style={{ textAlign: 'center', opacity: 0.7, marginBottom: 16 }}>
-                  Merci de compléter ces informations pour personnaliser votre expérience.
-                </ThemedText> */}
-                
-                <ThemedText style={{ fontWeight: 'bold', marginBottom: 8 }}>Nom de l'entreprise</ThemedText>
-                <TextInput
-                  style={[styles.input, { color: textColor, backgroundColor: inputBackgroundColor }]}
-                  placeholder="Nom de l'entreprise"
-                  placeholderTextColor={placeholderColor}
-                  value={structureData.companyName}
-                  onChangeText={(text) => setStructureData({ ...structureData, companyName: text })}
-                  autoCapitalize="words"
-                />
-                
-                <ThemedText style={{ fontWeight: 'bold', marginBottom: 8, marginTop: 10 }}>Type d'activité</ThemedText>
-                {renderPicker(
-                  structureData.activityDescription,
-                  activityOptions,
-                  'Sélectionner',
-                  handleChangeActivity
-                )}
-                
-                <ThemedText style={{ fontWeight: 'bold', marginBottom: 8, marginTop: 0 }}>Nombre d'employés</ThemedText>
-                {renderPicker(
-                  structureData.employeeCount || '',
-                  employeeCountOptions,
-                  'Sélectionner',
-                  (value) => setStructureData({ ...structureData, employeeCount: value })
-                )}
-                
-                {/* <ThemedText style={{ fontWeight: 'bold', marginBottom: 8, marginTop: 10 }}>
-                  Votre objectif pour ce test
-                </ThemedText>
-                <TextInput
-                  style={[styles.input, { color: textColor, backgroundColor: inputBackgroundColor, minHeight: 60 }]}
-                  placeholder="Ex: Je veux voir comment ce service peut m'aider sur..."
-                  placeholderTextColor={placeholderColor}
-                  value={structureData.testObjective || ''}
-                  onChangeText={(text) => setStructureData({ ...structureData, testObjective: text })}
-                  multiline
-                  numberOfLines={2}
-                /> */}
-                
+                <View style={{ marginBottom: 16 }}>
+                  <ThemedText style={styles.label}>Nom de l'entreprise</ThemedText>
+                  <TextInput
+                    style={[styles.input, { color: textColor, backgroundColor: inputBackgroundColor }]}
+                    placeholder="Nom de l'entreprise"
+                    placeholderTextColor={placeholderColor}
+                    value={structureData.companyName}
+                    onChangeText={(text) => setStructureData({ ...structureData, companyName: text })}
+                    autoCapitalize="words"
+                  />
+                </View>
+                <View style={{ marginBottom: 16 }}>
+                  <ThemedText style={styles.label}>Type d'activité</ThemedText>
+                  {renderPicker(
+                    structureData.activityDescription,
+                    activityOptions,
+                    'Sélectionner',
+                    handleChangeActivity
+                  )}
+                </View>
+                <View style={{ marginBottom: 16 }}>
+                  <ThemedText style={styles.label}>Nombre d'employés</ThemedText>
+                  {renderPicker(
+                    structureData.employeeCount || '',
+                    employeeCountOptions,
+                    'Sélectionner',
+                    (value) => setStructureData({ ...structureData, employeeCount: value })
+                  )}
+                </View>
                 <View style={styles.checkboxContainer}>
                   <Checkbox
                     value={acceptTerms}
@@ -301,38 +337,32 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
                     J'accepte les <ThemedText type="link" style={styles.checkboxLink}>Conditions Générales d'Utilisation</ThemedText>
                   </ThemedText>
                 </View>
+                <View style={{marginTop: 24 }}>
+                  
+                  <TouchableOpacity
+                    style={[styles.button, { backgroundColor: tintColor }]}
+                    onPress={handleSignUp}
+                    disabled={loading}
+                  >
+                    <ThemedText style={styles.buttonText}>
+                      {loading ? 'Inscription en cours...' : 'S\'inscrire'}
+                    </ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.retourButton, { flex: 1, marginTop: 8 }]}
+                    onPress={handleBack}
+                    disabled={loading}
+                  >
+                    <ThemedText style={styles.retourText}>Retour</ThemedText>
+                  </TouchableOpacity>
+                </View>
               </>
-            )}
-
-            {formError ? (
-              <ThemedText style={{ color: 'red', marginLeft: 10 }}>{formError}</ThemedText>
-            ) : null}
-            
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: tintColor }]}
-              onPress={currentStep === 1 ? handleContinue : handleSignUp}
-              disabled={loading}
-            >
-              <ThemedText style={styles.buttonText}>
-                {loading ? 'Inscription en cours...' : currentStep === 1 ? 'Continuer' : 'S\'inscrire'}
-              </ThemedText>
-            </TouchableOpacity>
-
-            {currentStep === 2 && (
-              <TouchableOpacity
-                style={[styles.retourButton, { marginTop: 8 }]}
-                onPress={handleBack}
-                disabled={loading}
-              >
-                <ThemedText style={styles.retourText}>
-                  Retour
-                </ThemedText>
-              </TouchableOpacity>
-            )}
+)}
+            </View>
           </View>
-        </View>
-      </ScrollView>
-
+        </ScrollView>
+      )}
       {/* Picker Modal for Android */}
       <Modal
         visible={pickerVisible}
@@ -373,6 +403,30 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
 };
 
 const styles = StyleSheet.create({
+  label: {
+    fontWeight: 'bold',
+    marginBottom: 6,
+    marginLeft: 2,
+    fontSize: 15,
+  },
+  error: {
+    color: 'red',
+    marginTop: 2,
+    marginLeft: 2,
+    fontSize: 13,
+  },
+  secondaryButton: {
+    backgroundColor: '#E5E5E5',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryButtonText: {
+    color: '#333',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
   container: {
     height: '100%',
     width: '100%',
@@ -424,6 +478,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4285F4',
     paddingVertical: 10,
     alignItems: 'center',
+    width: '100%',
   },
   buttonText: {
     color: '#fff',

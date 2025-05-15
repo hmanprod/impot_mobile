@@ -64,7 +64,15 @@ export default function AuthScreen() {
         email: formData.email,
         password: formData.password,
       });
-      if (error) throw error;
+      if (error) {
+      // Supabase duplicate email error code: 'auth/email-already-in-use'
+      if (error.code === 'auth/email-already-in-use' || error.message?.toLowerCase().includes('email')) {
+        setError("Cet email est déjà utilisé. Veuillez en choisir un autre ou vous connecter.");
+      } else {
+        setError(error.message);
+      }
+      throw error;
+    }
       const user = data?.user;
       // 2. If registration succeeded, insert profile data
       if (user) {
@@ -75,11 +83,11 @@ export default function AuthScreen() {
             company_name: formData.companyName,
             activity_description: formData.industry,
             employee_count: formData.employeeCount || null,
-            test_objective: formData.testObjective || null,
+            // test_objective: formData.testObjective || null,
           });
         if (profileError) throw profileError;
       }
-      router.replace('/(tabs)');
+      // router.replace('/(tabs)');
     } catch (err) {
       Alert.alert('Erreur d\'inscription', (err as Error).message);
     } finally {setLoading(false)};
@@ -204,7 +212,6 @@ export default function AuthScreen() {
             </>
           )}
 
-
           {currentView === AuthView.SignUp && (
             <View style={styles.signUpFormContainer}>
               <ThemedText type="title" style={styles.title}>
@@ -214,6 +221,7 @@ export default function AuthScreen() {
                 loading={loading}
                 onSignUp={handleSignUp}
                 onSwitchToLogin={handleSwitchToLogin}
+                errorMessage={error}
               />
               <TouchableOpacity onPress={() => setCurrentView(AuthView.Login)}>
                 <ThemedText style={styles.switchLink}>Vous avez déjà un compte ? Connectez-vous</ThemedText>
