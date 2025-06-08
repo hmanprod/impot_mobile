@@ -10,6 +10,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Checkbox from 'expo-checkbox';
@@ -72,6 +73,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [loadingSignUp, setLoadingSignUp] = useState(false);
   const [isOtherActivity, setIsOtherActivity] = useState(false);
   const [structureData, setStructureData] = useState<StructureFormData>({
     structureType: 'consultant',
@@ -155,6 +157,8 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
       setFormError('Veuillez accepter les conditions d\'utilisation.');
       return;
     }
+    setShowConfirmation(false);
+    setLoadingSignUp(true);
     onSignUp({
       email,
       password,
@@ -164,7 +168,8 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
       // testObjective: structureData.testObjective,
       acceptTerms,
     });
-    setShowConfirmation(true);
+    // La confirmation sera affichée via un effet (voir plus bas)
+
   };
 
   const handleBack = () => {
@@ -196,6 +201,30 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
     );
   };
 
+  // Effet pour détecter la fin de l'inscription et afficher la confirmation
+  React.useEffect(() => {
+    if (!loading && loadingSignUp) {
+      // Si loading est false (côté parent) mais que loadingSignUp est true (côté composant),
+      // cela signifie que l'inscription est terminée
+      setLoadingSignUp(false);
+      
+      // Si pas d'erreur, on affiche la confirmation
+      if (!errorMessage) {
+        setShowConfirmation(true);
+      }
+    }
+  }, [loading, errorMessage]);
+
+  // Affiche le spinner de loading si en cours d'inscription
+  if (loadingSignUp) {
+    return (
+      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={tintColor} style={{ marginBottom: 16 }} />
+        <ThemedText style={{ textAlign: 'center', marginBottom: 12 }}>Inscription en cours...</ThemedText>
+      </ThemedView>
+    );
+  }
+
   return (
     <ThemedView style={{ flex: 1 }}>
       {/* Step indicator */}
@@ -206,7 +235,12 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
           </ThemedText>
         </View>
       )} */}
-      {showConfirmation ? (
+      {loadingSignUp ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={tintColor} style={{ marginBottom: 16 }} />
+          <ThemedText style={{ textAlign: 'center', marginBottom: 12 }}>Inscription en cours...</ThemedText>
+        </View>
+      ) : showConfirmation ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
           <IconSymbol name="envelope" size={48} color={tintColor} style={{ marginBottom: 16 }} />
           <ThemedText type="title" style={{ textAlign: 'center', marginBottom: 12 }}>
@@ -227,6 +261,19 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={true}
         >
+          {errorMessage ? (
+            <View style={{ marginHorizontal: 16, marginBottom: 16, backgroundColor: '#FFEBEE', borderRadius: 8, padding: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <IconSymbol name="cross.red" size={24} color="red" style={{ marginRight: 8 }} />
+                <ThemedText style={{ color: 'red', fontWeight: 'bold' }}>
+                  Erreur lors de l'inscription
+                </ThemedText>
+              </View>
+              <ThemedText style={{ color: 'red', marginTop: 4 }}>
+                {errorMessage}
+              </ThemedText>
+            </View>
+          ) : null}
           <View style={{ paddingHorizontal: 16 }}>
             <View style={styles.form}>
 
@@ -248,9 +295,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSwitchToLogin, load
                   ) : null}
                   {formError ? (
                     <ThemedText style={styles.error}>{formError}</ThemedText>
-                  ) : null}
-                  {errorMessage ? (
-                    <ThemedText style={styles.error}>{errorMessage}</ThemedText>
                   ) : null}
                 </View>
 

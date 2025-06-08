@@ -21,11 +21,12 @@ export default function AuthScreen() {
   const colorScheme = useColorScheme();
   const [currentView, setCurrentView] = useState<AuthView>(AuthView.Login);
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [signupError, setSignupError] = useState<string | null>(null);
 
   const handleLogin = async (email: string, password: string) => {
     setLoading(true);
-    setError(null);
+    setLoginError(null);
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -33,20 +34,20 @@ export default function AuthScreen() {
       });
       if (error) {
         if (error.code === 'email_not_confirmed') {
-          setError('Veuillez confirmer votre adresse email avant de vous connecter.');
+          setLoginError('Veuillez confirmer votre adresse email avant de vous connecter.');
         } else {
-          setError(error.message);
+          setLoginError(error.message);
         }
         throw error;
       }
       router.replace('/(tabs)');
     } catch (err: any) {
       if (err?.code === 'email_not_confirmed') {
-        setError('Veuillez confirmer votre adresse email avant de vous connecter.');
+        setLoginError('Veuillez confirmer votre adresse email avant de vous connecter.');
       } else if (err?.message) {
-        setError(err.message);
+        setLoginError(err.message);
       } else {
-        setError('Erreur de connexion.');
+        setLoginError('Erreur de connexion.');
       }
       Alert.alert('Erreur de connexion', err?.message || 'Erreur de connexion.');
     } finally {
@@ -57,7 +58,7 @@ export default function AuthScreen() {
 
   const handleSignUp = async (formData: any) => {
     setLoading(true);
-    setError(null);
+    setSignupError(null);
     try {
       // 1. Register user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
@@ -67,9 +68,9 @@ export default function AuthScreen() {
       if (error) {
       // Supabase duplicate email error code: 'auth/email-already-in-use'
       if (error.code === 'auth/email-already-in-use' || error.message?.toLowerCase().includes('email')) {
-        setError("Cet email est déjà utilisé. Veuillez en choisir un autre ou vous connecter.");
+        setSignupError("Cet email est déjà utilisé. Veuillez en choisir un autre ou vous connecter.");
       } else {
-        setError(error.message);
+        setSignupError(error.message);
       }
       throw error;
     }
@@ -115,6 +116,7 @@ export default function AuthScreen() {
     },
     signUpFormContainer: {
       width: '100%', // Add this line
+      flex: 1,
     },
     subtitle: {
       textAlign: 'center',
@@ -130,6 +132,7 @@ export default function AuthScreen() {
       width: '100%',
       maxWidth: 400,
       alignSelf: 'center',
+      flex: 1,
     },
     inputContainer: {
       flexDirection: 'row',
@@ -204,7 +207,7 @@ export default function AuthScreen() {
                loading={loading}
                onLogin={handleLogin}
                onForgotPasswordPress={() => setCurrentView(AuthView.ForgotPassword)}
-               errorMessage={error}
+               errorMessage={loginError}
              />
               <TouchableOpacity onPress={() => setCurrentView(AuthView.SignUp)}>
                 <ThemedText style={styles.switchLink}>Vous n'avez pas de compte ? Inscrivez-vous</ThemedText>
@@ -221,7 +224,7 @@ export default function AuthScreen() {
                 loading={loading}
                 onSignUp={handleSignUp}
                 onSwitchToLogin={handleSwitchToLogin}
-                errorMessage={error}
+                errorMessage={signupError}
               />
               <TouchableOpacity onPress={() => setCurrentView(AuthView.Login)}>
                 <ThemedText style={styles.switchLink}>Vous avez déjà un compte ? Connectez-vous</ThemedText>

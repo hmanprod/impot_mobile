@@ -41,9 +41,23 @@ keystor alias : hmanprod
 
 ## BUILD ANDROID
 
-Create Bundle
+<!-- Clean -->
+cd android
+./gradlew clean
+cd ..
+
+<!-- Create Bundle -->
 npx react-native bundle --platform android --dev false --entry-file node_modules/expo-router/entry.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
 
+<!-- Remove unused resources -->
 cd android
+rm -rf app/src/main/res/drawable-*
+rm -rf app/src/main/res/raw
+
+<!-- Build -->
 ./gradlew assembleRelease
 
+## DEPLOY LOCALLY
+cd ..
+adb devices
+adb install -r android/app/build/outputs/apk/release/app-release.apk
